@@ -1,0 +1,948 @@
+# AuthenticationApi
+
+All URIs are relative to *https://api.zerpto.com*
+
+| Method | HTTP request | Description |
+|------------- | ------------- | -------------|
+| [**acceptInvite**](AuthenticationApi.md#acceptinvite) | **POST** /v1/auth/accept-invite | Accept invite, create account |
+| [**acceptInviteExisting**](AuthenticationApi.md#acceptinviteexisting) | **POST** /v1/auth/accept-invite/existing | Join a tenant from an invite |
+| [**changePassword**](AuthenticationApi.md#changepassword) | **PUT** /v1/auth/password | Change your password |
+| [**getMe**](AuthenticationApi.md#getme) | **GET** /v1/auth/me | Current user and permissions |
+| [**googleSignIn**](AuthenticationApi.md#googlesignin) | **POST** /v1/auth/google | Sign in with Google |
+| [**login**](AuthenticationApi.md#login) | **POST** /v1/auth/sign-in | Log in with email, password |
+| [**logout**](AuthenticationApi.md#logout) | **DELETE** /v1/auth/sign-out | Log out of the session |
+| [**refreshToken**](AuthenticationApi.md#refreshtoken) | **POST** /v1/auth/refresh | Refresh the access token |
+| [**register**](AuthenticationApi.md#register) | **POST** /v1/auth/sign-up | Register a new account |
+| [**sendPhoneCode**](AuthenticationApi.md#sendphonecode) | **POST** /v1/auth/phone/code | Send a phone code |
+| [**switchTenant**](AuthenticationApi.md#switchtenant) | **POST** /v1/auth/switch-tenant | Switch the active tenant |
+| [**verifyEmail**](AuthenticationApi.md#verifyemail) | **POST** /v1/auth/verify-email | Confirm an email address |
+| [**verifyPhoneCode**](AuthenticationApi.md#verifyphonecode) | **POST** /v1/auth/phone/verify | Verify a phone code |
+
+
+
+## acceptInvite
+
+> LoginResultResponse acceptInvite(acceptInviteInput)
+
+Accept invite, create account
+
+Creates an account from an invitation and signs the new user in. Use it when someone opens the link in an invitation email and chooses a password. The person joins the tenant that invited them, with the roles chosen in the invitation, and gets tokens in the response, so no separate login call is needed.  The token comes from the invitation email sent by [&#x60;POST /v1/iam/users&#x60;](#tag/platform/POST/v1/iam/users). The new user lands in the tenant that invited them, with the roles chosen in the invitation. If the invited email already has a Zerpto account, this call fails with &#x60;account_exists&#x60;: the person signs in and uses [&#x60;POST /v1/auth/accept-invite/existing&#x60;](#tag/authentication/POST/v1/auth/accept-invite/existing) instead.  Error codes: &#x60;invalid_token&#x60;, &#x60;token_expired&#x60;, &#x60;weak_password&#x60;, &#x60;account_exists&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { AcceptInviteRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const api = new AuthenticationApi();
+
+  const body = {
+    // AcceptInviteInput
+    acceptInviteInput: ...,
+  } satisfies AcceptInviteRequest;
+
+  try {
+    const data = await api.acceptInvite(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **acceptInviteInput** | [AcceptInviteInput](AcceptInviteInput.md) |  | |
+
+### Return type
+
+[**LoginResultResponse**](LoginResultResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | Account created and logged in |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## acceptInviteExisting
+
+> UserResponse acceptInviteExisting(acceptInviteExistingInput)
+
+Join a tenant from an invite
+
+Adds the signed-in person to the tenant that invited them, using the token from the invitation email, and keeps their existing account, name and password. Use it when the invited email already has a Zerpto account, for example from another company. The membership becomes &#x60;active&#x60; with the roles chosen in the invitation.  The token comes from the invitation email sent after [&#x60;POST /v1/iam/users&#x60;](#tag/users/POST/v1/iam/users). The caller must be signed in with [&#x60;POST /v1/auth/sign-in&#x60;](#tag/authentication/POST/v1/auth/sign-in) as the account the invitation was sent to; a person with no account uses [&#x60;POST /v1/auth/accept-invite&#x60;](#tag/authentication/POST/v1/auth/accept-invite) instead. The current session does not change. To work in the new tenant, find it with [&#x60;GET /v1/iam/tenants&#x60;](#tag/tenants/GET/v1/iam/tenants) and move there with [&#x60;POST /v1/auth/switch-tenant&#x60;](#tag/authentication/POST/v1/auth/switch-tenant).  Error codes: &#x60;invalid_token&#x60;, &#x60;token_expired&#x60;, &#x60;email_mismatch&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { AcceptInviteExistingRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AuthenticationApi(config);
+
+  const body = {
+    // AcceptInviteExistingInput
+    acceptInviteExistingInput: ...,
+  } satisfies AcceptInviteExistingRequest;
+
+  try {
+    const data = await api.acceptInviteExisting(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **acceptInviteExistingInput** | [AcceptInviteExistingInput](AcceptInviteExistingInput.md) |  | |
+
+### Return type
+
+[**UserResponse**](UserResponse.md)
+
+### Authorization
+
+[UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Joined the tenant |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## changePassword
+
+> changePassword(changePasswordInput)
+
+Change your password
+
+Changes the password of the person who is signed in, after they confirm the current one. Use it from the account settings page when the person knows their password and simply wants to choose a new one. If they have forgotten it, they should use the password reset flow, which needs only access to their email.  If the user forgot the current password, they use [&#x60;POST /v1/auth/reset-password&#x60;](#tag/forgot-password/POST/v1/auth/reset-password) and [&#x60;PUT /v1/auth/reset-password&#x60;](#tag/forgot-password/PUT/v1/auth/reset-password) instead.  Error codes: &#x60;invalid_credentials&#x60; (wrong current password), &#x60;weak_password&#x60;.  **Response meta** - No response body, so no meta. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { ChangePasswordRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AuthenticationApi(config);
+
+  const body = {
+    // ChangePasswordInput
+    changePasswordInput: ...,
+  } satisfies ChangePasswordRequest;
+
+  try {
+    const data = await api.changePassword(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **changePasswordInput** | [ChangePasswordInput](ChangePasswordInput.md) |  | |
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** | Password changed |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## getMe
+
+> MeResponse getMe()
+
+Current user and permissions
+
+Returns the person who is signed in, together with their roles and their effective permissions in the current tenant. Use it when the web app starts, to decide which menus and buttons to show. The permissions are what the user may really do: the sum of the user\&#39;s roles and any permissions granted to them directly, limited to the extensions the tenant has enabled, to the features its plan includes and, for a read-only user, to reading. It also says whether this person can still start a free trial.  Roles are managed with the role endpoints, starting at [&#x60;GET /v1/iam/roles&#x60;](#tag/platform/GET/v1/iam/roles), and a user\&#39;s direct permissions with [&#x60;PUT /v1/iam/users/{id}/permissions&#x60;](#tag/platform/PUT/v1/iam/users/{id}/permissions). Switching tenant with [&#x60;POST /v1/auth/switch-tenant&#x60;](#tag/authentication/POST/v1/auth/switch-tenant) changes what this returns, and so do [&#x60;POST /v1/iam/extensions/{id}/enable&#x60;](#tag/extensions/POST/v1/iam/extensions/{id}/enable) and [&#x60;POST /v1/iam/extensions/{id}/disable&#x60;](#tag/extensions/POST/v1/iam/extensions/{id}/disable). Build the sidebar from [&#x60;GET /v1/iam/menu&#x60;](#tag/extensions/GET/v1/iam/menu). Use &#x60;trial_available&#x60; to decide whether to offer a \&quot;start free trial\&quot; button, which calls [&#x60;POST /v1/billing/trial&#x60;](#tag/billing/POST/v1/billing/trial); the \&quot;subscribe\&quot; button, which calls [&#x60;POST /v1/billing/subscription&#x60;](#tag/billing/POST/v1/billing/subscription), is always offered.  Error codes: none specific.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { GetMeRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AuthenticationApi(config);
+
+  try {
+    const data = await api.getMe();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**MeResponse**](MeResponse.md)
+
+### Authorization
+
+[UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## googleSignIn
+
+> LoginResultResponse googleSignIn(googleSignInInput)
+
+Sign in with Google
+
+Exchanges a Google ID token for Zerpto access and refresh tokens, creating the account first if this is the person\&#39;s first time signing in with Google. Use it after the frontend completes Google\&#39;s own sign-in (Google Identity Services) and receives a signed ID token. The response is the same shape as [&#x60;POST /v1/auth/sign-in&#x60;](#tag/authentication/POST/v1/auth/sign-in): tokens plus the user and the tenant, with &#x60;tenant: null&#x60; for someone who hasn\&#39;t created one yet.  If the token\&#39;s email matches an existing account, whether it was created here or by an earlier Google sign-in, that account logs in: Google\&#39;s own email verification is trusted, so no separate [&#x60;POST /v1/auth/verify-email&#x60;](#tag/authentication/POST/v1/auth/verify-email) step is needed either way. A brand new account is &#x60;active&#x60; immediately and has no password, so it can currently only sign in with Google again. To continue after this call, use [&#x60;GET /v1/iam/tenants&#x60;](#tag/tenants/GET/v1/iam/tenants) and [&#x60;POST /v1/auth/switch-tenant&#x60;](#tag/authentication/POST/v1/auth/switch-tenant), or create a tenant with [&#x60;POST /v1/iam/tenants&#x60;](#tag/tenants/POST/v1/iam/tenants) when &#x60;tenant&#x60; is null.  Error codes: &#x60;invalid_google_token&#x60;, &#x60;google_email_not_verified&#x60;, &#x60;account_deactivated&#x60;, &#x60;account_locked&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { GoogleSignInRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const api = new AuthenticationApi();
+
+  const body = {
+    // GoogleSignInInput
+    googleSignInInput: ...,
+  } satisfies GoogleSignInRequest;
+
+  try {
+    const data = await api.googleSignIn(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **googleSignInInput** | [GoogleSignInInput](GoogleSignInInput.md) |  | |
+
+### Return type
+
+[**LoginResultResponse**](LoginResultResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Logged in |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## login
+
+> LoginResultResponse login(loginInput)
+
+Log in with email, password
+
+Exchanges an email address and password for an access token and a refresh token. Use it when a person signs in to the web app. The tokens are for the tenant the person used last, or for their only tenant. The response also includes the user and the tenant, so the app can show who is signed in straight away. A person who has not created a tenant yet gets &#x60;tenant: null&#x60; and tokens that are not scoped to any tenant.  The account must have its email confirmed with [&#x60;POST /v1/auth/verify-email&#x60;](#tag/authentication/POST/v1/auth/verify-email) first. To change tenant afterwards, use [&#x60;GET /v1/iam/tenants&#x60;](#tag/tenants/GET/v1/iam/tenants) and [&#x60;POST /v1/auth/switch-tenant&#x60;](#tag/authentication/POST/v1/auth/switch-tenant). When &#x60;tenant&#x60; is null, create one with [&#x60;POST /v1/iam/tenants&#x60;](#tag/tenants/POST/v1/iam/tenants).  Error codes: &#x60;invalid_credentials&#x60;, &#x60;account_deactivated&#x60;, &#x60;account_locked&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { LoginRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const api = new AuthenticationApi();
+
+  const body = {
+    // LoginInput
+    loginInput: ...,
+  } satisfies LoginRequest;
+
+  try {
+    const data = await api.login(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **loginInput** | [LoginInput](LoginInput.md) |  | |
+
+### Return type
+
+[**LoginResultResponse**](LoginResultResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Logged in |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## logout
+
+> logout()
+
+Log out of the session
+
+Ends the current session by revoking its refresh token. Use it when a person signs out of the web app, so the session cannot be renewed afterwards. The session is identified by the access token you send, so the request has no body. The access token itself stays valid until it expires, a few minutes at most.  After this call, [&#x60;POST /v1/auth/refresh&#x60;](#tag/authentication/POST/v1/auth/refresh) with that session\&#39;s refresh token fails, and the user logs in again with [&#x60;POST /v1/auth/sign-in&#x60;](#tag/authentication/POST/v1/auth/sign-in). If the access token has already expired, the call returns 401: the client can skip it and just discard its tokens.  Error codes: none specific.  **Response meta** - No response body, so no meta. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { LogoutRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AuthenticationApi(config);
+
+  try {
+    const data = await api.logout();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** | No content |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## refreshToken
+
+> TokenPairResponse refreshToken(refreshInput)
+
+Refresh the access token
+
+Exchanges a refresh token for a fresh pair of tokens for the same tenant. Use it when the access token is about to expire or has expired, so the person stays signed in without typing a password again. Each refresh token works only once: every call returns a new one, and the old one stops working.  Use the refresh token returned by [&#x60;POST /v1/auth/sign-in&#x60;](#tag/authentication/POST/v1/auth/sign-in), [&#x60;POST /v1/auth/accept-invite&#x60;](#tag/authentication/POST/v1/auth/accept-invite) or [&#x60;POST /v1/auth/switch-tenant&#x60;](#tag/authentication/POST/v1/auth/switch-tenant). Reusing an old refresh token revokes the whole session (token theft protection), so the user has to log in again.  Error codes: &#x60;invalid_token&#x60;, &#x60;token_expired&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { RefreshTokenRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const api = new AuthenticationApi();
+
+  const body = {
+    // RefreshInput
+    refreshInput: ...,
+  } satisfies RefreshTokenRequest;
+
+  try {
+    const data = await api.refreshToken(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **refreshInput** | [RefreshInput](RefreshInput.md) |  | |
+
+### Return type
+
+[**TokenPairResponse**](TokenPairResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | New tokens for the same tenant |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## register
+
+> RegistrationResponse register(registerInput)
+
+Register a new account
+
+Creates a new user account from a name, email address and password. Use it when someone signs up for Zerpto for the first time. It does not log the person in and does not create a tenant, so no tokens come back yet. The tenant is created later, during onboarding, once the person is logged in.  The account stays in &#x60;pending_verification&#x60; until the email address is confirmed with the link sent by email ([&#x60;POST /v1/auth/verify-email&#x60;](#tag/authentication/POST/v1/auth/verify-email)). Once confirmed, the user logs in with [&#x60;POST /v1/auth/sign-in&#x60;](#tag/authentication/POST/v1/auth/sign-in).  Error codes: &#x60;email_taken&#x60;, &#x60;weak_password&#x60;.  **Response meta** - &#x60;actions&#x60;: [&#x60;login&#x60;](#tag/authentication/POST/v1/auth/sign-in), which is &#x60;POST /v1/auth/sign-in&#x60;. Use it once the email is confirmed. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { RegisterRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const api = new AuthenticationApi();
+
+  const body = {
+    // RegisterInput
+    registerInput: ...,
+  } satisfies RegisterRequest;
+
+  try {
+    const data = await api.register(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **registerInput** | [RegisterInput](RegisterInput.md) |  | |
+
+### Return type
+
+[**RegistrationResponse**](RegistrationResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | Account created. Confirm the email address, then log in. |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## sendPhoneCode
+
+> sendPhoneCode(phoneCodeInput)
+
+Send a phone code
+
+Sends a 6-digit code to a phone number by WhatsApp or SMS, to prove that the signed-in person owns that number. Use it before starting a free trial, which needs a verified phone number. The code works for a few minutes, and asking again replaces the previous one.  The code is checked by [&#x60;POST /v1/auth/phone/verify&#x60;](#tag/authentication/POST/v1/auth/phone/verify). Once the number is verified, &#x60;phone_verified&#x60; in [&#x60;GET /v1/auth/me&#x60;](#tag/authentication/GET/v1/auth/me) is true and [&#x60;POST /v1/billing/trial&#x60;](#tag/billing/POST/v1/billing/trial) can be called. Sending is rate limited per person and per number.  Error codes: &#x60;invalid_phone&#x60;, &#x60;too_many_codes&#x60;.  **Response meta** - No response body, so no meta. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { SendPhoneCodeRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AuthenticationApi(config);
+
+  const body = {
+    // PhoneCodeInput
+    phoneCodeInput: ...,
+  } satisfies SendPhoneCodeRequest;
+
+  try {
+    const data = await api.sendPhoneCode(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **phoneCodeInput** | [PhoneCodeInput](PhoneCodeInput.md) |  | |
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** | Code sent |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## switchTenant
+
+> SwitchTenantResponse switchTenant(switchTenantInput)
+
+Switch the active tenant
+
+Moves the current session to another tenant that the person belongs to. Use it when someone picks a different company in the tenant switcher. It checks that the person is an active member of that tenant, then returns a new pair of tokens scoped to it, and revokes the refresh token of the old tenant.  The old access token stays valid until it expires (at most &#x60;expires_in&#x60; seconds). Get the list of tenants to choose from with [&#x60;GET /v1/iam/tenants&#x60;](#tag/tenants/GET/v1/iam/tenants).  Error codes: &#x60;not_a_member&#x60;, &#x60;tenant_suspended&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { SwitchTenantRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AuthenticationApi(config);
+
+  const body = {
+    // SwitchTenantInput
+    switchTenantInput: ...,
+  } satisfies SwitchTenantRequest;
+
+  try {
+    const data = await api.switchTenant(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **switchTenantInput** | [SwitchTenantInput](SwitchTenantInput.md) |  | |
+
+### Return type
+
+[**SwitchTenantResponse**](SwitchTenantResponse.md)
+
+### Authorization
+
+[UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | New tokens scoped to the target tenant |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## verifyEmail
+
+> VerifyEmailResponse verifyEmail(verifyEmailInput)
+
+Confirm an email address
+
+Confirms the email address of a new account with the token from the verification email. Use it when the person opens the link in that email, so the account can start logging in. Calling it again for an address that is already confirmed is safe: it does nothing new and returns the same response as the first time.  The token comes from the email sent by [&#x60;POST /v1/auth/sign-up&#x60;](#tag/authentication/POST/v1/auth/sign-up). After confirming, the user logs in with [&#x60;POST /v1/auth/sign-in&#x60;](#tag/authentication/POST/v1/auth/sign-in).  Error codes: &#x60;invalid_token&#x60;, &#x60;token_expired&#x60;.  **Response meta** - &#x60;web_urls&#x60;: the login page of the web app. Send the user there to log in, or call [&#x60;POST /v1/auth/sign-in&#x60;](#tag/authentication/POST/v1/auth/sign-in). 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { VerifyEmailRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const api = new AuthenticationApi();
+
+  const body = {
+    // VerifyEmailInput
+    verifyEmailInput: ...,
+  } satisfies VerifyEmailRequest;
+
+  try {
+    const data = await api.verifyEmail(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **verifyEmailInput** | [VerifyEmailInput](VerifyEmailInput.md) |  | |
+
+### Return type
+
+[**VerifyEmailResponse**](VerifyEmailResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Email confirmed. The account can now log in. |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## verifyPhoneCode
+
+> verifyPhoneCode(phoneVerifyInput)
+
+Verify a phone code
+
+Checks the code that was sent to a phone number and marks the number as verified for the signed-in person. Use it right after the person types the code they received. A number can start only one free trial, across all tenants.  The code comes from [&#x60;POST /v1/auth/phone/code&#x60;](#tag/authentication/POST/v1/auth/phone/code). After success, &#x60;phone_verified&#x60; in [&#x60;GET /v1/auth/me&#x60;](#tag/authentication/GET/v1/auth/me) is true. Wrong guesses are limited, and after too many the person has to ask for a new code.  Error codes: &#x60;invalid_code&#x60;, &#x60;code_expired&#x60;, &#x60;too_many_attempts&#x60;.  **Response meta** - No response body, so no meta. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AuthenticationApi,
+} from '@zerpto/sdk';
+import type { VerifyPhoneCodeRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AuthenticationApi(config);
+
+  const body = {
+    // PhoneVerifyInput
+    phoneVerifyInput: ...,
+  } satisfies VerifyPhoneCodeRequest;
+
+  try {
+    const data = await api.verifyPhoneCode(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **phoneVerifyInput** | [PhoneVerifyInput](PhoneVerifyInput.md) |  | |
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** | Phone verified |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+

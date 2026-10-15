@@ -1,0 +1,1017 @@
+# RFQApi
+
+All URIs are relative to *https://api.zerpto.com*
+
+| Method | HTTP request | Description |
+|------------- | ------------- | -------------|
+| [**awardRfq**](RFQApi.md#awardrfq) | **POST** /v1/purchasing/rfqs/{id}/award | Award a quote |
+| [**cancelRfq**](RFQApi.md#cancelrfq) | **POST** /v1/purchasing/rfqs/{id}/cancel | Cancel RFQ |
+| [**convertRfq**](RFQApi.md#convertrfq) | **POST** /v1/purchasing/rfqs/{id}/convert | Convert RFQ to order |
+| [**createRfq**](RFQApi.md#createrfq) | **POST** /v1/purchasing/rfqs | Create RFQ |
+| [**createRfqQuote**](RFQApi.md#createrfqquote) | **POST** /v1/purchasing/rfqs/{id}/quotes | Record a vendor quote |
+| [**getRfq**](RFQApi.md#getrfq) | **GET** /v1/purchasing/rfqs/{id} | Get RFQ |
+| [**getRfqComparison**](RFQApi.md#getrfqcomparison) | **GET** /v1/purchasing/rfqs/{id}/comparison | Compare vendor quotes |
+| [**getRfqVendorDocument**](RFQApi.md#getrfqvendordocument) | **GET** /v1/purchasing/rfqs/{id}/vendors/{vendor_id}/document | Get the RFQ PDF |
+| [**listRfqs**](RFQApi.md#listrfqs) | **GET** /v1/purchasing/rfqs | List RFQs |
+| [**sendRfq**](RFQApi.md#sendrfq) | **POST** /v1/purchasing/rfqs/{id}/send | Send RFQ to vendors |
+| [**updateRfq**](RFQApi.md#updaterfq) | **PATCH** /v1/purchasing/rfqs/{id} | Update RFQ |
+| [**updateRfqQuote**](RFQApi.md#updaterfqquote) | **PATCH** /v1/purchasing/rfqs/{id}/quotes/{quote_id} | Update a vendor quote |
+
+
+
+## awardRfq
+
+> RfqResponse awardRfq(id, rfqAwardInput, idempotencyKey)
+
+Award a quote
+
+Chooses the winning quote of a sent request. The chosen quote becomes &#x60;awarded&#x60;, the others become &#x60;rejected&#x60;, and the request becomes &#x60;awarded&#x60;. Use it once the quotes have been compared. Awarding again with another quote is allowed until the request is converted, and it swaps the winner. A repeated request with the same &#x60;Idempotency-Key&#x60; returns the first result.  The &#x60;quote_id&#x60; comes from [&#x60;GET /v1/purchasing/rfqs/{{id}}/comparison&#x60;](#tag/rfq/GET/v1/purchasing/rfqs/{{id}}/comparison). Turn the winner into a purchase order with [&#x60;POST /v1/purchasing/rfqs/{{id}}/convert&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/convert). To stop instead, call [&#x60;POST /v1/purchasing/rfqs/{{id}}/cancel&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/cancel).  Error codes: &#x60;rfq_not_open&#x60;, &#x60;unknown_quote&#x60;, &#x60;quote_expired&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { AwardRfqRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+    // RfqAwardInput
+    rfqAwardInput: ...,
+    // string | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. (optional)
+    idempotencyKey: idempotencyKey_example,
+  } satisfies AwardRfqRequest;
+
+  try {
+    const data = await api.awardRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+| **rfqAwardInput** | [RfqAwardInput](RfqAwardInput.md) |  | |
+| **idempotencyKey** | `string` | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**RfqResponse**](RfqResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## cancelRfq
+
+> RfqResponse cancelRfq(id, idempotencyKey)
+
+Cancel RFQ
+
+Cancels a request that you no longer need. The request becomes &#x60;cancelled&#x60; and its quotes are kept for the record. Use it for a draft you dropped, or for a sent or awarded request that will not lead to an order. A converted request cannot be cancelled: cancel the purchase order instead. A repeated request with the same &#x60;Idempotency-Key&#x60; returns the first result.  Vendors that were already sent the request are not told, so tell them yourself. To go on with a different winner instead of cancelling, award another quote with [&#x60;POST /v1/purchasing/rfqs/{{id}}/award&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/award). A purchase order made from the request is cancelled with [&#x60;POST /v1/purchasing/orders/{{id}}/cancel&#x60;](#tag/orders/POST/v1/purchasing/orders/{{id}}/cancel).  Error codes: &#x60;rfq_not_cancellable&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { CancelRfqRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+    // string | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. (optional)
+    idempotencyKey: idempotencyKey_example,
+  } satisfies CancelRfqRequest;
+
+  try {
+    const data = await api.cancelRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+| **idempotencyKey** | `string` | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**RfqResponse**](RfqResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## convertRfq
+
+> PurchaseOrderResponse convertRfq(id, idempotencyKey)
+
+Convert RFQ to order
+
+Converts the awarded quote into a purchase order. The vendor, the currency and the lines the vendor offered, with their prices and taxes, are copied into a new order in &#x60;draft&#x60;, and the request\&#39;s &#x60;default_required_date&#x60;, when set, becomes the order\&#39;s &#x60;expected_date&#x60;, and the request becomes &#x60;converted&#x60; with its &#x60;purchase_order_id&#x60; set. Use it once the winner has been agreed. A repeated request with the same &#x60;Idempotency-Key&#x60; returns the first result.  Award a quote with [&#x60;POST /v1/purchasing/rfqs/{{id}}/award&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/award) before you convert. The response is the new order, which you can still adjust with [&#x60;PATCH /v1/purchasing/orders/{{id}}&#x60;](#tag/orders/PATCH/v1/purchasing/orders/{{id}}) and then send on with [&#x60;POST /v1/purchasing/orders/{{id}}/submit&#x60;](#tag/orders/POST/v1/purchasing/orders/{{id}}/submit). Find it later with [&#x60;GET /v1/purchasing/orders/{{id}}&#x60;](#tag/orders/GET/v1/purchasing/orders/{{id}}).  Error codes: &#x60;rfq_not_awarded&#x60;, &#x60;already_converted&#x60;, &#x60;quote_expired&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { ConvertRfqRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+    // string | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. (optional)
+    idempotencyKey: idempotencyKey_example,
+  } satisfies ConvertRfqRequest;
+
+  try {
+    const data = await api.convertRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+| **idempotencyKey** | `string` | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**PurchaseOrderResponse**](PurchaseOrderResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | Success |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## createRfq
+
+> RfqResponse createRfq(rfqInput, idempotencyKey)
+
+Create RFQ
+
+Creates a request for quotation in &#x60;draft&#x60;. Send the &#x60;rfq_date&#x60;, the &#x60;reply_by&#x60; date, the &#x60;currency&#x60;, the &#x60;vendor_ids&#x60; you want a price from and at least one line with a description and its &#x60;deliveries&#x60;. Each delivery has a &#x60;quantity&#x60;, a &#x60;warehouse_id&#x60; and a &#x60;required_date&#x60;, so one item can be asked for in several parts, on different dates or to different warehouses. A line with no &#x60;deliveries&#x60; can send a &#x60;quantity&#x60; instead, and the server makes one delivery from &#x60;default_warehouse_id&#x60; and &#x60;default_required_date&#x60;. Everything else is optional: &#x60;notes&#x60;, an &#x60;item_id&#x60;, &#x60;specification&#x60; and &#x60;unit&#x60; per line, a &#x60;contact_user_id&#x60; (the creator by default), the &#x60;payment_terms_days&#x60;, the &#x60;delivery_terms&#x60; (&#x60;delivered&#x60;, &#x60;pickup&#x60; or &#x60;either&#x60;), &#x60;request_freight_breakdown&#x60;, which asks vendors to state freight separately, and &#x60;group_by&#x60; (&#x60;item&#x60; by default, or &#x60;delivery_date&#x60; or &#x60;warehouse&#x60;), which sets how the detail and the vendor document present the delivery schedule. The RFQ never holds a freight amount. The server numbers the request. Nothing reaches a vendor until the request is sent. A repeated request with the same &#x60;Idempotency-Key&#x60; returns the first result.  Take the &#x60;vendor_ids&#x60; from [&#x60;GET /v1/partner/vendors&#x60;](#tag/vendors/GET/v1/partner/vendors) and the &#x60;item_id&#x60; of each line from [&#x60;GET /v1/catalog/items&#x60;](#tag/product-items/GET/v1/catalog/items). Edit the draft with [&#x60;PATCH /v1/purchasing/rfqs/{{id}}&#x60;](#tag/rfq/PATCH/v1/purchasing/rfqs/{{id}}), then send it with [&#x60;POST /v1/purchasing/rfqs/{{id}}/send&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/send). A draft you no longer need is dropped with [&#x60;POST /v1/purchasing/rfqs/{{id}}/cancel&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/cancel).  Error codes: &#x60;unknown_vendor&#x60;, &#x60;vendor_archived&#x60;, &#x60;unknown_item&#x60;, &#x60;vendors_required&#x60;, &#x60;invalid_required_date&#x60; (field &#x60;default_required_date&#x60; or &#x60;lines&#x60;), &#x60;invalid_contact_user&#x60; (field &#x60;contact_user_id&#x60;), &#x60;invalid_warehouse&#x60; (field &#x60;default_warehouse_id&#x60; or &#x60;lines&#x60;), &#x60;invalid_payment_terms&#x60; (field &#x60;payment_terms_days&#x60;), &#x60;invalid_delivery_terms&#x60; (field &#x60;delivery_terms&#x60;), &#x60;invalid_line&#x60; (field &#x60;lines&#x60;), &#x60;invalid_delivery&#x60; (field &#x60;lines&#x60;).  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { CreateRfqRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // RfqInput
+    rfqInput: ...,
+    // string | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. (optional)
+    idempotencyKey: idempotencyKey_example,
+  } satisfies CreateRfqRequest;
+
+  try {
+    const data = await api.createRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqInput** | [RfqInput](RfqInput.md) |  | |
+| **idempotencyKey** | `string` | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**RfqResponse**](RfqResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | Success |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## createRfqQuote
+
+> RfqQuoteResponse createRfqQuote(id, rfqQuoteInput, idempotencyKey)
+
+Record a vendor quote
+
+Records the reply of one invited vendor to a sent request. Send the &#x60;vendor_id&#x60;, the &#x60;quote_date&#x60;, optionally &#x60;valid_until&#x60;, &#x60;lead_time_days&#x60;, &#x60;delivery_terms&#x60; and &#x60;notes&#x60;, the vendor\&#39;s freight (&#x60;freight_cost&#x60;, &#x60;freight_included_in_price&#x60;, &#x60;freight_tax_included&#x60;, &#x60;freight_tax_rate_id&#x60;), and a price for each line of the request. A priced line carries the &#x60;unit_price&#x60; exactly as the vendor stated it, with &#x60;tax_included&#x60; and &#x60;tax_rate_id&#x60; saying how to read it, optional &#x60;moq&#x60;, &#x60;lead_time_days&#x60; and &#x60;price_breaks&#x60;, and the &#x60;deliveries&#x60; the vendor offers: quantity, warehouse and promised date, which may differ from the request. A line the vendor does not offer has a null &#x60;unit_price&#x60;. A delivery you leave out comes back as &#x60;not_quoted&#x60;. The server works out the effective price, the line and quote totals and the &#x60;total_landed&#x60;. A vendor has one quote per request: to change it, edit it. A repeated request with the same &#x60;Idempotency-Key&#x60; returns the first result.  Use it after [&#x60;POST /v1/purchasing/rfqs/{{id}}/send&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/send), once a vendor has answered. Fix a mistake with [&#x60;PATCH /v1/purchasing/rfqs/{{id}}/quotes/{{quote_id}}&#x60;](#tag/rfq/PATCH/v1/purchasing/rfqs/{{id}}/quotes/{{quote_id}}), then compare the replies with [&#x60;GET /v1/purchasing/rfqs/{{id}}/comparison&#x60;](#tag/rfq/GET/v1/purchasing/rfqs/{{id}}/comparison). Take a &#x60;tax_rate_id&#x60; from [&#x60;GET /v1/tax-rates&#x60;](#tag/tax-and-currencies/GET/v1/tax-rates).  Error codes: &#x60;rfq_not_open&#x60;, &#x60;vendor_not_invited&#x60;, &#x60;quote_exists&#x60;, &#x60;unknown_rfq_line&#x60;, &#x60;unknown_rfq_delivery&#x60;, &#x60;duplicate_delivery_answer&#x60;, &#x60;invalid_delivery&#x60;, &#x60;unknown_tax_rate&#x60;, &#x60;tax_rate_required&#x60;, &#x60;invalid_price_breaks&#x60;, &#x60;freight_included_conflict&#x60;, &#x60;freight_pickup_conflict&#x60;, &#x60;all_lines_missing&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { CreateRfqQuoteRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+    // RfqQuoteInput
+    rfqQuoteInput: ...,
+    // string | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. (optional)
+    idempotencyKey: idempotencyKey_example,
+  } satisfies CreateRfqQuoteRequest;
+
+  try {
+    const data = await api.createRfqQuote(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+| **rfqQuoteInput** | [RfqQuoteInput](RfqQuoteInput.md) |  | |
+| **idempotencyKey** | `string` | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**RfqQuoteResponse**](RfqQuoteResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | Success |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## getRfq
+
+> RfqResponse getRfq(id)
+
+Get RFQ
+
+Returns one request for quotation by its &#x60;id&#x60;, with its status, dates, currency, the vendors invited, every line and every quote recorded so far, each with its totals. Use it to show the request, to prefill an edit form, or to see who has replied before you decide.  Take the &#x60;id&#x60; from [&#x60;GET /v1/purchasing/rfqs&#x60;](#tag/rfq/GET/v1/purchasing/rfqs) or from the response of [&#x60;POST /v1/purchasing/rfqs&#x60;](#tag/rfq/POST/v1/purchasing/rfqs). While it is a &#x60;draft&#x60;, change it with [&#x60;PATCH /v1/purchasing/rfqs/{{id}}&#x60;](#tag/rfq/PATCH/v1/purchasing/rfqs/{{id}}). Record replies with [&#x60;POST /v1/purchasing/rfqs/{{id}}/quotes&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/quotes), line them up with [&#x60;GET /v1/purchasing/rfqs/{{id}}/comparison&#x60;](#tag/rfq/GET/v1/purchasing/rfqs/{{id}}/comparison), and pick one with [&#x60;POST /v1/purchasing/rfqs/{{id}}/award&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/award).  Error codes: none specific.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { GetRfqRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+  } satisfies GetRfqRequest;
+
+  try {
+    const data = await api.getRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+
+### Return type
+
+[**RfqResponse**](RfqResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## getRfqComparison
+
+> RfqComparisonResponse getRfqComparison(id)
+
+Compare vendor quotes
+
+Lines up the quotes of a request side by side, by request line and then by delivery, with one entry per vendor. For every line it shows each vendor\&#39;s unit price at the requested quantity and which is the lowest. For every delivery it shows what each vendor offered: the quantity, the promised date, the difference from the request and &#x60;days_late&#x60;. For every vendor it shows the freight and the &#x60;total_landed&#x60;, so quotes with different delivery terms are compared on the same basis. Use it to choose a winner. It only reads: nothing is decided until a quote is awarded.  The quotes come from [&#x60;POST /v1/purchasing/rfqs/{{id}}/quotes&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/quotes). When you have chosen, pick the winner with [&#x60;POST /v1/purchasing/rfqs/{{id}}/award&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/award). A vendor that did not offer a line has no entry for it, and a delivery the vendor did not answer shows &#x60;not_quoted&#x60;. When the vendor gave no promised date, the date is estimated from the lead time and marked &#x60;estimated&#x60;; with no lead time either, &#x60;days_late&#x60; is null. Every quote is compared, partial ones too, so read &#x60;quantity_variance&#x60;, &#x60;lines_offered&#x60; and the freight flags &#x60;freight_bundled&#x60;, &#x60;freight_not_stated&#x60; and &#x60;landed_cost_excludes_buyer_transport&#x60; before you choose.  Error codes: none specific.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { GetRfqComparisonRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+  } satisfies GetRfqComparisonRequest;
+
+  try {
+    const data = await api.getRfqComparison(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+
+### Return type
+
+[**RfqComparisonResponse**](RfqComparisonResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## getRfqVendorDocument
+
+> RfqDocumentResponse getRfqVendorDocument(id, vendorId)
+
+Get the RFQ PDF
+
+Returns a link to download the request for quotation as a PDF addressed to one vendor. It shows your company details, the vendor and the item table, with each item\&#39;s description, &#x60;specification&#x60;, &#x60;unit&#x60; and &#x60;total_quantity&#x60; and no prices. Below the table is the delivery schedule, laid out as the RFQ\&#39;s &#x60;group_by&#x60; says: by &#x60;item&#x60; (each item with its specification and &#x60;total_quantity&#x60;, then its deliveries), by &#x60;delivery_date&#x60; (each &#x60;required_date&#x60; with its items, specification, quantity and warehouse) or by &#x60;warehouse&#x60; (each delivery address with its items, specification, quantity and delivery date). It also shows the &#x60;delivery_terms&#x60;, and, when they are set, the buyer\&#39;s contact person (&#x60;contact_user_id&#x60;), the payment terms asked (&#x60;payment_terms_days&#x60;) and a request to state freight separately (&#x60;request_freight_breakdown&#x60;). A detail that is not set is left out of the file. It also carries the &#x60;reply_by&#x60; date and the notes, fixed instructions for the vendor on how to reply, a sign-off with the contact person\&#39;s name and email, and a closing statement that the document is not a purchase order. Use it to send the request yourself, by attaching the file to your own email, a message or a print-out. Each vendor has its own file.  Take the &#x60;id&#x60; from [&#x60;GET /v1/purchasing/rfqs&#x60;](#tag/rfq/GET/v1/purchasing/rfqs) and the &#x60;vendor_id&#x60; from the request\&#39;s &#x60;vendor_ids&#x60;. It works for a draft too, so you can check the file before [&#x60;POST /v1/purchasing/rfqs/{{id}}/send&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/send); send with &#x60;deliver_by_email&#x60; as false when you send the files yourself. The replies are then typed in with [&#x60;POST /v1/purchasing/rfqs/{{id}}/quotes&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/quotes). The link is short-lived: call this again for a new one once it expires.  Error codes: &#x60;vendor_not_invited&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { GetRfqVendorDocumentRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+    // string | One of the vendors invited, from `vendor_ids` of the request.
+    vendorId: vendorId_example,
+  } satisfies GetRfqVendorDocumentRequest;
+
+  try {
+    const data = await api.getRfqVendorDocument(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+| **vendorId** | `string` | One of the vendors invited, from &#x60;vendor_ids&#x60; of the request. | [Defaults to `undefined`] |
+
+### Return type
+
+[**RfqDocumentResponse**](RfqDocumentResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## listRfqs
+
+> RfqListResponse listRfqs(perPage, page, sort, createdAfter, createdBefore, status, vendorId)
+
+List RFQs
+
+Lists the requests for quotation you have written, with status, reply-by date, the vendors invited and how many quotes have come back. Use it to follow open requests, to find ones waiting for a decision, or to review what a vendor was asked to price. Filter by &#x60;status&#x60; or &#x60;vendor_id&#x60; and narrow by creation date.  Get a &#x60;vendor_id&#x60; for the filter from [&#x60;GET /v1/partner/vendors&#x60;](#tag/vendors/GET/v1/partner/vendors). New requests are made with [&#x60;POST /v1/purchasing/rfqs&#x60;](#tag/rfq/POST/v1/purchasing/rfqs) and one request is read with [&#x60;GET /v1/purchasing/rfqs/{{id}}&#x60;](#tag/rfq/GET/v1/purchasing/rfqs/{{id}}). An awarded request becomes a purchase order with [&#x60;POST /v1/purchasing/rfqs/{{id}}/convert&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/convert).  Error codes: none specific.  **Response meta** - &#x60;pagination&#x60;: &#x60;page&#x60;, &#x60;per_page&#x60;, &#x60;total_items&#x60;, &#x60;total_pages&#x60;, and the paging URLs &#x60;self&#x60;, &#x60;first&#x60;, &#x60;prev&#x60;, &#x60;next&#x60;, &#x60;last&#x60; (&#x60;prev&#x60; and &#x60;next&#x60; are null at the ends). Use &#x60;?page&#x3D;&#x60; and &#x60;?per_page&#x3D;&#x60;. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { ListRfqsRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // number | Page size. (optional)
+    perPage: 56,
+    // number | Page number, starting at 1. (optional)
+    page: 56,
+    // string | Field to sort by. Prefix with `-` for descending. (optional)
+    sort: -created_at,
+    // Date | Only records created after this time. (optional)
+    createdAfter: 2013-10-20T19:20:30+01:00,
+    // Date | Only records created before this time. (optional)
+    createdBefore: 2013-10-20T19:20:30+01:00,
+    // 'draft' | 'sent' | 'awarded' | 'converted' | 'cancelled' | Filter by status. (optional)
+    status: status_example,
+    // string | Only requests that invited this vendor. (optional)
+    vendorId: vendorId_example,
+  } satisfies ListRfqsRequest;
+
+  try {
+    const data = await api.listRfqs(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **perPage** | `number` | Page size. | [Optional] [Defaults to `25`] |
+| **page** | `number` | Page number, starting at 1. | [Optional] [Defaults to `1`] |
+| **sort** | `string` | Field to sort by. Prefix with &#x60;-&#x60; for descending. | [Optional] [Defaults to `undefined`] |
+| **createdAfter** | `Date` | Only records created after this time. | [Optional] [Defaults to `undefined`] |
+| **createdBefore** | `Date` | Only records created before this time. | [Optional] [Defaults to `undefined`] |
+| **status** | `draft`, `sent`, `awarded`, `converted`, `cancelled` | Filter by status. | [Optional] [Defaults to `undefined`] [Enum: draft, sent, awarded, converted, cancelled] |
+| **vendorId** | `string` | Only requests that invited this vendor. | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**RfqListResponse**](RfqListResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## sendRfq
+
+> RfqResponse sendRfq(id, idempotencyKey, rfqSendInput)
+
+Send RFQ to vendors
+
+Marks a draft request as sent, and by default emails it to every vendor invited. Each vendor gets the lines and quantities and the &#x60;reply_by&#x60; date. Send &#x60;deliver_by_email&#x60; as false when you send the request yourself, for example by attaching the PDF to your own email, and nothing is emailed. Either way the request becomes &#x60;sent&#x60;, and from then on vendor replies can be recorded. Use it when the draft is ready to go out. A repeated request with the same &#x60;Idempotency-Key&#x60; returns the first result.  Create and fix the request with [&#x60;POST /v1/purchasing/rfqs&#x60;](#tag/rfq/POST/v1/purchasing/rfqs) and [&#x60;PATCH /v1/purchasing/rfqs/{{id}}&#x60;](#tag/rfq/PATCH/v1/purchasing/rfqs/{{id}}) before you send it. To send it yourself, download one PDF per vendor with [&#x60;GET /v1/purchasing/rfqs/{id}/vendors/{vendor_id}/document&#x60;](#tag/rfq/GET/v1/purchasing/rfqs/{id}/vendors/{vendor_id}/document) first. Zerpto does not collect the answers: when a vendor replies by email, phone or message, type the prices in with [&#x60;POST /v1/purchasing/rfqs/{{id}}/quotes&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/quotes). If you send by mistake, [&#x60;POST /v1/purchasing/rfqs/{{id}}/cancel&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/cancel) stops the request.  Error codes: &#x60;rfq_not_sendable&#x60;, &#x60;vendor_email_missing&#x60; (only when emailing).  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { SendRfqRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+    // string | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. (optional)
+    idempotencyKey: idempotencyKey_example,
+    // RfqSendInput (optional)
+    rfqSendInput: ...,
+  } satisfies SendRfqRequest;
+
+  try {
+    const data = await api.sendRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+| **idempotencyKey** | `string` | Unique key (e.g. a UUID). Retrying with the same key returns the original result instead of creating a duplicate. Keys are kept for 24 hours. | [Optional] [Defaults to `undefined`] |
+| **rfqSendInput** | [RfqSendInput](RfqSendInput.md) |  | [Optional] |
+
+### Return type
+
+[**RfqResponse**](RfqResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## updateRfq
+
+> RfqResponse updateRfq(id, rfqUpdate)
+
+Update RFQ
+
+Changes a request for quotation that is still a &#x60;draft&#x60;. Send only the fields you want to change, and send &#x60;null&#x60; to clear an optional field such as &#x60;default_required_date&#x60; or &#x60;default_warehouse_id&#x60;. &#x60;group_by&#x60; changes how the delivery schedule is presented and can be changed while the request is a &#x60;draft&#x60;. When you send &#x60;lines&#x60; or &#x60;vendor_ids&#x60;, the whole list replaces the old one, so a line comes with all its &#x60;deliveries&#x60; and you include everything you want to keep. A request that has been sent is locked, deliveries included, and the call returns 409.  Read the current request with [&#x60;GET /v1/purchasing/rfqs/{{id}}&#x60;](#tag/rfq/GET/v1/purchasing/rfqs/{{id}}) first, and take new vendors or items from [&#x60;GET /v1/partner/vendors&#x60;](#tag/vendors/GET/v1/partner/vendors) or [&#x60;GET /v1/catalog/items&#x60;](#tag/product-items/GET/v1/catalog/items). When the draft is ready, send it with [&#x60;POST /v1/purchasing/rfqs/{{id}}/send&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/send). To stop a request that has left draft, use [&#x60;POST /v1/purchasing/rfqs/{{id}}/cancel&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/cancel).  Error codes: &#x60;rfq_not_editable&#x60;, &#x60;unknown_vendor&#x60;, &#x60;vendor_archived&#x60;, &#x60;unknown_item&#x60;, &#x60;vendors_required&#x60;, &#x60;invalid_required_date&#x60; (field &#x60;default_required_date&#x60; or &#x60;lines&#x60;), &#x60;invalid_contact_user&#x60; (field &#x60;contact_user_id&#x60;), &#x60;invalid_warehouse&#x60; (field &#x60;default_warehouse_id&#x60; or &#x60;lines&#x60;), &#x60;invalid_payment_terms&#x60; (field &#x60;payment_terms_days&#x60;), &#x60;invalid_delivery_terms&#x60; (field &#x60;delivery_terms&#x60;), &#x60;invalid_line&#x60; (field &#x60;lines&#x60;), &#x60;invalid_delivery&#x60; (field &#x60;lines&#x60;).  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { UpdateRfqRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+    // RfqUpdate
+    rfqUpdate: ...,
+  } satisfies UpdateRfqRequest;
+
+  try {
+    const data = await api.updateRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+| **rfqUpdate** | [RfqUpdate](RfqUpdate.md) |  | |
+
+### Return type
+
+[**RfqResponse**](RfqResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## updateRfqQuote
+
+> RfqQuoteResponse updateRfqQuote(id, quoteId, rfqQuoteUpdate)
+
+Update a vendor quote
+
+Changes a quote that has been recorded, for example when the vendor revises a price, a promised date or the freight, or extends the validity. Send only the fields you want to change; when you send &#x60;lines&#x60;, the whole list replaces the old one, deliveries and price breaks included. Prices, totals and &#x60;total_landed&#x60; are worked out again, and the tax rate percentage is taken again as it is at that moment. Use it while the request is &#x60;sent&#x60;. A request that has been awarded can no longer change its quotes, and the call returns 409.  The &#x60;quote_id&#x60; comes from &#x60;quotes&#x60; in [&#x60;GET /v1/purchasing/rfqs/{{id}}&#x60;](#tag/rfq/GET/v1/purchasing/rfqs/{{id}}) or from [&#x60;POST /v1/purchasing/rfqs/{{id}}/quotes&#x60;](#tag/rfq/POST/v1/purchasing/rfqs/{{id}}/quotes). After the change, compare again with [&#x60;GET /v1/purchasing/rfqs/{{id}}/comparison&#x60;](#tag/rfq/GET/v1/purchasing/rfqs/{{id}}/comparison).  Error codes: &#x60;rfq_not_open&#x60;, &#x60;unknown_rfq_line&#x60;, &#x60;unknown_rfq_delivery&#x60;, &#x60;duplicate_delivery_answer&#x60;, &#x60;invalid_delivery&#x60;, &#x60;unknown_tax_rate&#x60;, &#x60;tax_rate_required&#x60;, &#x60;invalid_price_breaks&#x60;, &#x60;freight_included_conflict&#x60;, &#x60;freight_pickup_conflict&#x60;, &#x60;all_lines_missing&#x60;.  **Response meta** - &#x60;meta&#x60; is empty. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQApi,
+} from '@zerpto/sdk';
+import type { UpdateRfqQuoteRequest } from '@zerpto/sdk';
+
+async function example() {
+  console.log("🚀 Testing @zerpto/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: ApiKeyAuth
+    accessToken: "YOUR BEARER TOKEN",
+    // Configure HTTP bearer authorization: UserJWT
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQApi(config);
+
+  const body = {
+    // string | Resource ID.
+    id: id_example,
+    // string | The quote, from the request\'s `quotes`.
+    quoteId: quoteId_example,
+    // RfqQuoteUpdate
+    rfqQuoteUpdate: ...,
+  } satisfies UpdateRfqQuoteRequest;
+
+  try {
+    const data = await api.updateRfqQuote(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `string` | Resource ID. | [Defaults to `undefined`] |
+| **quoteId** | `string` | The quote, from the request\&#39;s &#x60;quotes&#x60;. | [Defaults to `undefined`] |
+| **rfqQuoteUpdate** | [RfqQuoteUpdate](RfqQuoteUpdate.md) |  | |
+
+### Return type
+
+[**RfqQuoteResponse**](RfqQuoteResponse.md)
+
+### Authorization
+
+[ApiKeyAuth](../README.md#ApiKeyAuth), [UserJWT](../README.md#UserJWT)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Success |  -  |
+| **400** | Malformed request or invalid parameter. |  -  |
+| **401** | Missing, invalid or revoked API key. |  -  |
+| **403** | The key or user may not do this. The error &#x60;code&#x60; says why: &#x60;permission_denied&#x60; when the role or key lacks the permission, &#x60;plan_required&#x60; when the tenant\&#39;s plan does not include the feature (the &#x60;message&#x60; names the feature key), and &#x60;read_only_user&#x60; when the user is read-only and the call writes. |  -  |
+| **404** | Resource not found in this tenant. |  -  |
+| **409** | State conflict, e.g. duplicate code, or editing a posted document. |  -  |
+| **422** | Well-formed but fails business rules, e.g. unbalanced entry or closed period. |  -  |
+| **429** | Rate limit exceeded. |  * Retry-After - Seconds to wait before retrying. <br>  * X-RateLimit-Limit - Requests allowed per window. <br>  * X-RateLimit-Remaining - Requests left in the current window. <br>  * X-RateLimit-Reset - Unix time when the window resets. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
